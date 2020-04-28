@@ -7,3 +7,4 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+esp32-hal = { git = "https://github.com/esp-rs/esp32-hal.git", rev = "f2c6fc9" }
