@@ -8,4 +8,5 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-esp32-hal = { git = "https://github.com/esp-rs/esp32-hal.git", rev = "f2c6fc9" }
+esp32 = "0.3.0"
+esp32-hal = { git = "https://github.com/esp-rs/esp32-hal" }
