@@ -12,16 +12,16 @@ pub static mut STORED_RX: Option<Rx<UART0>> = None;
 
 #[macro_export]
 macro_rules! setup_logger {
-    ($uart0:expr, $rtccntl:expr, $apb_ctrl:expr, $dport:expr) => {
-        let (mut dport, dport_clock_control) = $dport.split();
+    ($dp:expr) => {
+        let (mut dport, dport_clock_control) = $dp.DPORT.split();
         let clock_control =
-            ClockControl::new($rtccntl, $apb_ctrl, dport_clock_control, XTAL_FREQUENCY_AUTO).unwrap();
+            ClockControl::new($dp.RTCCNTL, $dp.APB_CTRL, dport_clock_control, XTAL_FREQUENCY_AUTO).unwrap();
 
         let (clock_control_config, mut watchdog) = clock_control.freeze().unwrap();
         watchdog.disable();
 
         let serial = Serial::uart0(
-            $uart0,
+            $dp.UART0,
             (NoTx, NoRx),
             Config::default().baudrate(115200.Hz()),
             clock_control_config,
