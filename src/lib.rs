@@ -42,6 +42,29 @@ macro_rules! setup_logger {
 macro_rules! log {
     ($($arg:tt)*) => (
         if let Some(tx) = unsafe { &mut STORED_TX } {
+            write!(tx, "[ LOG ] ").unwrap();
+            write!(tx, $($arg)*).unwrap();
+            write!(tx, "\r\n").unwrap();
+        }
+    );
+}
+
+#[macro_export]
+macro_rules! warn {
+    ($($arg:tt)*) => (
+        if let Some(tx) = unsafe { &mut STORED_TX } {
+            write!(tx, "[ WARN ] ").unwrap();
+            write!(tx, $($arg)*).unwrap();
+            write!(tx, "\r\n").unwrap();
+        }
+    );
+}
+
+#[macro_export]
+macro_rules! error {
+    ($($arg:tt)*) => (
+        if let Some(tx) = unsafe { &mut STORED_TX } {
+            write!(tx, "[ ERROR ] ").unwrap();
             write!(tx, $($arg)*).unwrap();
             write!(tx, "\r\n").unwrap();
         }
