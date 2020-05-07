@@ -7,8 +7,8 @@ pub use esp32_hal::prelude::*;
 pub use esp32_hal::serial::config::Config;
 pub use esp32_hal::serial::{NoRx, NoTx, Rx, Serial, Tx};
 
-pub static mut STORED_TX: Option<Tx<UART0>> = None;
-pub static mut STORED_RX: Option<Rx<UART0>> = None;
+pub static STORED_TX: spin::Mutex<Option<Tx<UART0>>> = spin::Mutex::new(None);
+pub static STORED_RX: spin::Mutex<Option<Rx<UART0>>> = spin::Mutex::new(None);
 
 #[macro_export]
 macro_rules! setup_logger {
@@ -32,8 +32,8 @@ macro_rules! setup_logger {
         let (tx, rx) = serial.split();
 
         unsafe {
-            STORED_TX = Some(tx);
-            STORED_RX = Some(rx);
+            *STORED_TX.lock() = Some(tx);
+            *STORED_RX.lock() = Some(rx);
         }
     }
 }
@@ -41,7 +41,7 @@ macro_rules! setup_logger {
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => (
-        if let Some(tx) = unsafe { &mut STORED_TX } {
+        if let Some(tx) = unsafe { STORED_TX.lock().as_mut() } {
             write!(tx, "[ LOG ] ").unwrap();
             write!(tx, $($arg)*).unwrap();
             write!(tx, "\r\n").unwrap();
@@ -52,7 +52,7 @@ macro_rules! log {
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => (
-        if let Some(tx) = unsafe { &mut STORED_TX } {
+        if let Some(tx) = unsafe { STORED_TX.lock().as_mut() } {
             write!(tx, "[ WARN ] ").unwrap();
             write!(tx, $($arg)*).unwrap();
             write!(tx, "\r\n").unwrap();
@@ -63,7 +63,7 @@ macro_rules! warn {
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => (
-        if let Some(tx) = unsafe { &mut STORED_TX } {
+        if let Some(tx) = unsafe { STORED_TX.lock().as_mut() } {
             write!(tx, "[ ERROR ] ").unwrap();
             write!(tx, $($arg)*).unwrap();
             write!(tx, "\r\n").unwrap();
