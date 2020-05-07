@@ -10,6 +10,15 @@ pub use esp32_hal::serial::{NoRx, NoTx, Rx, Serial, Tx};
 pub static STORED_TX: spin::Mutex<Option<Tx<UART0>>> = spin::Mutex::new(None);
 pub static STORED_RX: spin::Mutex<Option<Rx<UART0>>> = spin::Mutex::new(None);
 
+/// Setup the logger on UART0
+/// # Example
+/// ```
+/// use esp32_logger::*;
+/// use esp32::Peripherals;
+///
+/// let dp = unsafe { Peripherals::steal() };
+/// setup_logger!(dp);
+/// ```
 #[macro_export]
 macro_rules! setup_logger {
     ($dp:expr) => {
@@ -38,6 +47,17 @@ macro_rules! setup_logger {
     }
 }
 
+/// Log message
+/// # Example
+/// ```
+/// use esp32_logger::*;
+///
+/// let dp = unsafe { esp32::Peripherals::steal() };
+/// setup_logger!(dp);
+///
+/// let value = 42;
+/// log!("The current value is {}", value);
+/// ```
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => (
@@ -49,6 +69,17 @@ macro_rules! log {
     );
 }
 
+/// Log message as a warning
+/// # Example
+/// ```
+/// use esp32_logger::*;
+///
+/// let dp = unsafe { esp32::Peripherals::steal() };
+/// setup_logger!(dp);
+///
+/// let value = 42;
+/// warn!("Something doesn't seem right... {}", value);
+/// ```
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => (
@@ -60,6 +91,17 @@ macro_rules! warn {
     );
 }
 
+/// Log message as an error
+/// # Example
+/// ```
+/// use esp32_logger::*;
+///
+/// let dp = unsafe { esp32::Peripherals::steal() };
+/// setup_logger!(dp);
+///
+/// let value = 42;
+/// error!("Okay something broke: {}", value);
+/// ```
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => (
