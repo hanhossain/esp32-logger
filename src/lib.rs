@@ -51,7 +51,7 @@ macro_rules! setup_logger {
     //     }
     // }
     ($x:expr) => {
-        panic!("nope");
+        panic!("not implemented yet");
     };
 }
 
@@ -75,8 +75,14 @@ macro_rules! log {
     //         write!(tx, "\r\n").unwrap();
     //     }
     // );
-    ($x:expr) => {
-        panic!("nope");
+    ($($arg:tt)*) => {
+        {
+            use esp32_hal::dprint;
+
+            dprint!("[ LOG ] ");
+            dprint!($($arg)*);
+            dprint!("\r\n");
+        }
     };
 }
 
@@ -100,8 +106,14 @@ macro_rules! warn {
     //         write!(tx, "\r\n").unwrap();
     //     }
     // );
-    ($x:expr) => {
-        panic!("nope");
+    ($($arg:tt)*) => {
+        {
+            use esp32_hal::dprint;
+
+            dprint!("[ WARN ] ");
+            dprint!($($arg)*);
+            dprint!("\r\n");
+        }
     };
 }
 
@@ -125,7 +137,13 @@ macro_rules! error {
     //         write!(tx, "\r\n").unwrap();
     //     }
     // );
-    ($x:expr) => {
-        panic!("nope");
+    ($($arg:tt)*) => {
+        {
+            use esp32_hal::dprint;
+
+            dprint!("[ ERROR ] ");
+            dprint!($($arg)*);
+            dprint!("\r\n");
+        }
     };
 }
