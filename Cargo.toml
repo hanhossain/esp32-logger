@@ -15,6 +15,5 @@ categories = ["embedded", "no-std"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-esp32 = "0.3.0"
 esp32-hal = { git = "https://github.com/esp-rs/esp32-hal" }
 spin = "0.5.2"
