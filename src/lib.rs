@@ -44,7 +44,7 @@ pub fn setup_logger(
 
     let mut tx = STORED_TX.lock();
     let tx = tx.as_mut().unwrap();
-    write!(tx, "\r\n[ INFO ] Initialized logger.\r\n").unwrap();
+    write!(tx, "\r\n[ INIT ] Initialized logger.\r\n").unwrap();
 }
 
 /// Log message
@@ -61,7 +61,7 @@ macro_rules! log {
         if let Some(tx) = unsafe { STORED_TX.lock().as_mut() } {
             use core::fmt::Write;
 
-            write!(tx, "[ INFO ] ").unwrap();
+            write!(tx, "[ LOG ] ").unwrap();
             write!(tx, $($arg)*).unwrap();
             write!(tx, "\r\n").unwrap();
         }
