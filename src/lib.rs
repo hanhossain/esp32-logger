@@ -10,6 +10,14 @@
 //
 // pub static STORED_TX: spin::Mutex<Option<Tx<UART0>>> = spin::Mutex::new(None);
 // pub static STORED_RX: spin::Mutex<Option<Rx<UART0>>> = spin::Mutex::new(None);
+use esp32_hal::{
+    clock_control::ClockControlConfig,
+    gpio::{Gpio1, Gpio3, Unknown},
+    interrupt::DPORT,
+    prelude::*,
+    serial::{config::Config, Pins, Serial},
+    target::UART0,
+};
 
 /// Setup the logger on UART0
 /// # Example
@@ -20,40 +28,64 @@
 /// let dp = unsafe { Peripherals::steal() };
 /// setup_logger!(dp);
 /// ```
-#[macro_export]
-macro_rules! setup_logger {
-    // ($dp:expr) => {
-    //     {
-    //         let (mut dport, dport_clock_control) = $dp.DPORT.split();
-    //         let clock_control =
-    //             ClockControl::new($dp.RTCCNTL, $dp.APB_CTRL, dport_clock_control, XTAL_FREQUENCY_AUTO).unwrap();
-    //
-    //         let (clock_control_config, mut watchdog) = clock_control.freeze().unwrap();
-    //         watchdog.disable();
-    //
-    //         let serial = Serial::uart0(
-    //             $dp.UART0,
-    //             (NoTx, NoRx),
-    //             Config::default().baudrate(115200.Hz()),
-    //             clock_control_config,
-    //             &mut dport,
-    //         )
-    //         .unwrap();
-    //
-    //         let (tx, rx) = serial.split();
-    //
-    //         unsafe {
-    //             *STORED_TX.lock() = Some(tx);
-    //             *STORED_RX.lock() = Some(rx);
-    //         }
-    //
-    //         (clock_control_config, watchdog, dport)
-    //     }
-    // }
-    ($x:expr) => {
-        panic!("not implemented yet");
-    };
+pub fn setup(
+    uart0: UART0,
+    gpio1: Gpio1<Unknown>,
+    gpio3: Gpio3<Unknown>,
+    clock_control_config: ClockControlConfig,
+    dport: &mut DPORT,
+) {
+    use core::fmt::Write;
+
+    let serial: Serial<_, _, _> = Serial::new(
+        uart0,
+        Pins {
+            tx: gpio1,
+            rx: gpio3,
+            cts: None,
+            rts: None,
+        },
+        Config::default().baudrate(115200.Hz()),
+        clock_control_config,
+        dport,
+    )
+    .unwrap();
+
+    let (mut tx, mut rx) = serial.split();
+    write!(tx, "in setup\r\n").unwrap();
 }
+// #[macro_export]
+// macro_rules! setup_logger {
+//     // ($dp:expr) => {
+//     //     {
+//     //         let (mut dport, dport_clock_control) = $dp.DPORT.split();
+//     //         let clock_control =
+//     //             ClockControl::new($dp.RTCCNTL, $dp.APB_CTRL, dport_clock_control, XTAL_FREQUENCY_AUTO).unwrap();
+//     //
+//     //         let (clock_control_config, mut watchdog) = clock_control.freeze().unwrap();
+//     //         watchdog.disable();
+//     //
+//     //         let serial = Serial::uart0(
+//     //             $dp.UART0,
+//     //             (NoTx, NoRx),
+//     //             Config::default().baudrate(115200.Hz()),
+//     //             clock_control_config,
+//     //             &mut dport,
+//     //         )
+//     //         .unwrap();
+//     //
+//     //         let (tx, rx) = serial.split();
+//     //
+//     //         unsafe {
+//     //             *STORED_TX.lock() = Some(tx);
+//     //             *STORED_RX.lock() = Some(rx);
+//     //         }
+//     //
+//     //         (clock_control_config, watchdog, dport)
+//     //     }
+//     // }
+//     ($x:expr) => {};
+// }
 
 /// Log message
 /// # Example
