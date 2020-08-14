@@ -14,7 +14,7 @@ pub static STORED_TX: Mutex<Option<Tx<UART0>>> = Mutex::new(None);
 pub static STORED_RX: Mutex<Option<Rx<UART0>>> = Mutex::new(None);
 
 /// Setup the logger on UART0
-pub fn setup(
+pub fn setup_logger(
     uart0: UART0,
     gpio1: Gpio1<Unknown>,
     gpio3: Gpio3<Unknown>,
@@ -47,16 +47,16 @@ pub fn setup(
     write!(tx, "\r\n[ INFO ] Initialized logger.\r\n").unwrap();
 }
 
-/// Log message as info
+/// Log message
 /// # Example
 /// ```
-/// use esp32_logger as logger;
+/// use esp32_logger::*;
 ///
 /// let value = 42;
-/// logger::info!("The current value is {}", value);
+/// log!("The current value is {}", value);
 /// ```
 #[macro_export]
-macro_rules! info {
+macro_rules! log {
     ($($arg:tt)*) => (
         if let Some(tx) = unsafe { STORED_TX.lock().as_mut() } {
             use core::fmt::Write;
@@ -71,10 +71,10 @@ macro_rules! info {
 /// Log message as a warning
 /// # Example
 /// ```
-/// use esp32_logger as logger;
+/// use esp32_logger::*;
 ///
 /// let value = 42;
-/// logger::warn!("Something doesn't seem right... {}", value);
+/// warn!("Something doesn't seem right... {}", value);
 /// ```
 #[macro_export]
 macro_rules! warn {
@@ -91,10 +91,10 @@ macro_rules! warn {
 /// Log message as an error
 /// # Example
 /// ```
-/// use esp32_logger as logger;
+/// use esp32_logger::*;
 ///
 /// let value = 42;
-/// logger::error!("Okay something broke: {}", value);
+/// error!("Okay something broke: {}", value);
 /// ```
 #[macro_export]
 macro_rules! error {
