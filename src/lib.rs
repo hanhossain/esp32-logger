@@ -3,7 +3,6 @@
 use esp32_hal::{
     clock_control::ClockControlConfig,
     gpio::{Gpio1, Gpio3, Unknown},
-    interrupt::DPORT,
     prelude::*,
     serial::{config::Config, Pins, Rx, Serial, Tx},
     target::UART0,
@@ -19,7 +18,6 @@ pub fn setup_logger(
     gpio1: Gpio1<Unknown>,
     gpio3: Gpio3<Unknown>,
     clock_control_config: ClockControlConfig,
-    dport: &mut DPORT,
 ) {
     use core::fmt::Write;
 
@@ -33,7 +31,6 @@ pub fn setup_logger(
         },
         Config::default().baudrate(115200.Hz()),
         clock_control_config,
-        dport,
     )
     .unwrap();
 
