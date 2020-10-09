@@ -13,7 +13,7 @@ pub static STORED_TX: Mutex<Option<Tx<UART0>>> = Mutex::new(None);
 pub static STORED_RX: Mutex<Option<Rx<UART0>>> = Mutex::new(None);
 
 /// Setup the logger on UART0
-pub fn setup_logger(
+pub fn init(
     uart0: UART0,
     gpio1: Gpio1<Unknown>,
     gpio3: Gpio3<Unknown>,
@@ -55,7 +55,7 @@ pub fn setup_logger(
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => (
-        if let Some(tx) = unsafe { STORED_TX.lock().as_mut() } {
+        if let Some(tx) = unsafe { esp32_logger::STORED_TX.lock().as_mut() } {
             use core::fmt::Write;
 
             write!(tx, "[ LOG ] ").unwrap();
@@ -76,7 +76,7 @@ macro_rules! log {
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => (
-        if let Some(tx) = unsafe { STORED_TX.lock().as_mut() } {
+        if let Some(tx) = unsafe { esp32_logger::STORED_TX.lock().as_mut() } {
             use core::fmt::Write;
             write!(tx, "[ WARN ] ").unwrap();
             write!(tx, $($arg)*).unwrap();
@@ -96,7 +96,7 @@ macro_rules! warn {
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => (
-        if let Some(tx) = unsafe { STORED_TX.lock().as_mut() } {
+        if let Some(tx) = unsafe { esp32_logger::STORED_TX.lock().as_mut() } {
             use core::fmt::Write;
 
             write!(tx, "[ ERROR ] ").unwrap();
