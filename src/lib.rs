@@ -1,136 +1,53 @@
+//! Logger for the ESP32
+//!
 //! # Example
 //! ```
-//! let dp = target::Peripherals::take().expect("failed to acquire peripherals");
-//! let (_, dport_clock_control) = dp.DPORT.split();
+//! use log::info;
 //!
-//! let clock_control = ClockControl::new(
-//!     dp.RTCCNTL,
-//!     dp.APB_CTRL,
-//!     dport_clock_control,
-//!     XTAL_FREQUENCY_AUTO,
-//! )
-//! .unwrap();
+//! fn main() -> ! {
+//!     esp32_logger::init();
 //!
-//! // disable RTC watchdog
-//! let (clock_control_config, mut watchdog) = clock_control.freeze().unwrap();
-//! watchdog.disable();
+//!     let mut counter = 0;
 //!
-//! // disable MST watchdogs
-//! let (.., mut watchdog0) = Timer::new(dp.TIMG0, clock_control_config);
-//! let (.., mut watchdog1) = Timer::new(dp.TIMG1, clock_control_config);
-//! watchdog0.disable();
-//! watchdog1.disable();
+//!     loop {
+//!         info!("counter: {}", counter);
+//!         counter += 1;
+//!     }
+//! }
 //!
-//! let gpios = dp.GPIO.split();
-//!
-//! esp32_logger::init(dp.UART0, gpios.gpio1, gpios.gpio3, clock_control_config);
-//! esp32_logger::log!("This is a valid log!");
 //! ```
-
 #![no_std]
 
-use esp32_hal::{
-    clock_control::ClockControlConfig,
-    gpio::{Gpio1, Gpio3, Unknown},
-    prelude::*,
-    serial::{config::Config, Pins, Rx, Serial, Tx},
-    target::UART0,
-};
-use spin::Mutex;
+use esp32_hal::dprintln;
+use log::{Level, LevelFilter, Metadata, Record};
 
-pub static STORED_TX: Mutex<Option<Tx<UART0>>> = Mutex::new(None);
-pub static STORED_RX: Mutex<Option<Rx<UART0>>> = Mutex::new(None);
+static LOGGER: Logger = Logger;
 
-/// Setup the logger on UART0
-pub fn init(
-    uart0: UART0,
-    gpio1: Gpio1<Unknown>,
-    gpio3: Gpio3<Unknown>,
-    clock_control_config: ClockControlConfig,
-) {
-    use core::fmt::Write;
-
-    let serial: Serial<_, _, _> = Serial::new(
-        uart0,
-        Pins {
-            tx: gpio1,
-            rx: gpio3,
-            cts: None,
-            rts: None,
-        },
-        Config::default().baudrate(115200.Hz()),
-        clock_control_config,
-    )
-    .unwrap();
-
-    let (tx, rx) = serial.split();
-
-    *STORED_TX.lock() = Some(tx);
-    *STORED_RX.lock() = Some(rx);
-
-    let mut tx = STORED_TX.lock();
-    let tx = tx.as_mut().unwrap();
-    write!(tx, "\r\n[ INIT ] Initialized logger.\r\n").unwrap();
+/// Setup the logger with the default (info) level.
+pub fn init() {
+    init_with_level(LevelFilter::Info);
 }
 
-/// Log message
-/// # Example
-/// ```
-/// use esp32_logger::*;
-///
-/// let value = 42;
-/// log!("The current value is {}", value);
-/// ```
-#[macro_export]
-macro_rules! log {
-    ($($arg:tt)*) => (
-        if let Some(tx) = unsafe { esp32_logger::STORED_TX.lock().as_mut() } {
-            use core::fmt::Write;
+/// Setup the logger with a specific level.
+pub fn init_with_level(level: LevelFilter) {
+    log::set_logger(&LOGGER).unwrap();
+    log::set_max_level(level);
 
-            write!(tx, "[ LOG ] ").unwrap();
-            write!(tx, $($arg)*).unwrap();
-            write!(tx, "\r\n").unwrap();
-        }
-    );
+    log::trace!("Initialized logger. Level = {}.", level);
 }
 
-/// Log message as a warning
-/// # Example
-/// ```
-/// use esp32_logger::*;
-///
-/// let value = 42;
-/// warn!("Something doesn't seem right... {}", value);
-/// ```
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => (
-        if let Some(tx) = unsafe { esp32_logger::STORED_TX.lock().as_mut() } {
-            use core::fmt::Write;
-            write!(tx, "[ WARN ] ").unwrap();
-            write!(tx, $($arg)*).unwrap();
-            write!(tx, "\r\n").unwrap();
-        }
-    );
-}
+struct Logger;
 
-/// Log message as an error
-/// # Example
-/// ```
-/// use esp32_logger::*;
-///
-/// let value = 42;
-/// error!("Okay something broke: {}", value);
-/// ```
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => (
-        if let Some(tx) = unsafe { esp32_logger::STORED_TX.lock().as_mut() } {
-            use core::fmt::Write;
+impl log::Log for Logger {
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        metadata.level() <= Level::Trace
+    }
 
-            write!(tx, "[ ERROR ] ").unwrap();
-            write!(tx, $($arg)*).unwrap();
-            write!(tx, "\r\n").unwrap();
+    fn log(&self, record: &Record) {
+        if self.enabled(record.metadata()) {
+            dprintln!("[ {} ] {}", record.level(), record.args());
         }
-    );
+    }
+
+    fn flush(&self) {}
 }

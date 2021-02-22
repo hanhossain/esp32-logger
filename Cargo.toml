@@ -16,4 +16,4 @@ categories = ["embedded", "no-std"]
 
 [dependencies]
 esp32-hal = "0.2.0"
-spin = "0.5.2"
+log = "0.4.14"
