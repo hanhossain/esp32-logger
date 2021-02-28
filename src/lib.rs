@@ -18,7 +18,7 @@
 //! ```
 #![no_std]
 
-use esp32_hal::dprintln;
+use esp32_hal::{dflush, dprintln};
 use log::{Level, LevelFilter, Metadata, Record};
 
 static LOGGER: Logger = Logger;
@@ -49,5 +49,7 @@ impl log::Log for Logger {
         }
     }
 
-    fn flush(&self) {}
+    fn flush(&self) {
+        dflush!();
+    }
 }
